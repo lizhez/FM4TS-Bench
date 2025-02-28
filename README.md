@@ -27,12 +27,12 @@ FM4TS-Bench is a new benchmark designed to enable thorough and fair evaluation a
 
 ### Prepaer Datasets
 
-You can obtained the well pre-processed datasets from [Google Drive](https://drive.google.com/file/d/1kvvAhf09hNSJWwIxdchpqWb_KuofCGAp/view?usp=drive_link). Create a separate folder named `./dataset` 
+You can obtained the well pre-processed datasets from [Google Drive](https://drive.google.com/file/d/1ZrDotV98JWCSfMaQ94XXd6vh0g27GIrB/view?usp=drive_link). Create a separate folder named `./dataset` 
 
 ### Prepaer Checkpoints for Foundation Models
-1. We provide checkpoints for the basic model used in the paper. Please download the checkpoints from [Google Drive](https://drive.google.com/file/d/1jwI13uljIxALVYSt30D15s7H3bVQ7v41/view?usp=drive_link).
+1. We provide checkpoints for the basic model used in the paper. Please download the checkpoints from [Google Drive](https://drive.google.com/file/d/1M5Opdq--wY6mOjWn6w1_CAOabnY-C_nF/view?usp=sharing).
 
-2. You can also download the latest checkpoints from the following link (Please place the checkpoints of GPT-2 in directory ./ts_benchmark/baselines/LLM/checkpoints/, and the checkpoints of the other models in directory ./ts_benchmark/baselines/pre_train/checkpoints/.):
+2. You can also download the latest checkpoints from the following link (Please place the checkpoints of GPT-2 and  in directory ./ts_benchmark/baselines/LLM/checkpoints/, and the checkpoints of the other models in directory ./ts_benchmark/baselines/pre_train/checkpoints/.):
 
     | **Model** | **Link** |
     | --- | --- |
