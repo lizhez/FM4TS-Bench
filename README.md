@@ -32,7 +32,7 @@ You can obtained the well pre-processed datasets from [Google Drive](https://dri
 ### Prepaer Checkpoints for Foundation Models
 1. We provide checkpoints for the basic model used in the paper. Please download the checkpoints from [Google Drive](https://drive.google.com/file/d/1M5Opdq--wY6mOjWn6w1_CAOabnY-C_nF/view?usp=sharing).
 
-2. You can also download the latest checkpoints from the following link (Please place the checkpoints of GPT-2 and  in directory ./ts_benchmark/baselines/LLM/checkpoints/, and the checkpoints of the other models in directory ./ts_benchmark/baselines/pre_train/checkpoints/.):
+2. You can also download the checkpoints from the following link. Please place the `checkpoint_llm` folder under `./ts_benchmark/baselines/LLM/` and rename it as `checkpoints`. the `checkpoint_pretrain` folder under `./ts_benchmark/baselines/pre_train/` and rename it as `checkpoints`.:
 
     | **Model** | **Link** |
     | --- | --- |
