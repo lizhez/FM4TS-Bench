@@ -120,22 +120,6 @@ DEFAULT_LLM_BASED_HYPER_PARAMS = {
     "lora_dropout": 0.1,
     "word_embedding_path": "ts_benchmark/baselines/LLM/checkpoints/wte_pca_500.pt",
 }
-# def get_lags(freq_str:str):
-#     freq_str = freq_str.upper()
-#     if freq_str == "M":
-#         lags = [1, 12]
-#     elif freq_str == "D":
-#         lags = [1, 7, 14]
-#     elif freq_str == "B":
-#         lags = [1, 2]
-#     elif freq_str == "H":
-#         lags = [1, 24, 168]
-#     elif freq_str in ("T", "min"):
-#         lags = [1, 4, 12, 24, 48]
-#     else:
-#         lags = [1]
-
-#     return lags
 
 
 class LLMConfig:
@@ -349,9 +333,7 @@ class LLMAdapter(ModelBase):
             p.numel() for p in self.model.parameters()
         ) 
         print(f"Total parameters: {total_params}")
-        
-        # if config.is_train:
-        # Define the loss function and optimizer
+
         criterion = nn.MSELoss()
         optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
         self.early_stopping = EarlyStopping(patience=config.patience)
@@ -361,12 +343,11 @@ class LLMAdapter(ModelBase):
         )
         print(f"Total trainable parameters: {total_params}")
 
-        # if not os.path.exists("ts_benchmark/baselines/LLM/checkpoints/LLM"):
-        #     os.makedirs("ts_benchmark/baselines/LLM/checkpoints/LLM")
+        if not os.path.exists("ts_benchmark/baselines/LLM/checkpoints/LLM"):
+            os.makedirs("ts_benchmark/baselines/LLM/checkpoints/LLM")
 
         for epoch in range(config.num_epochs):
             self.model.train()
-            # for input, target, input_mark, target_mark in train_data_loader:
             for i, (input, target, input_mark, target_mark) in enumerate(
                 train_data_loader
             ):
@@ -414,16 +395,16 @@ class LLMAdapter(ModelBase):
                 if self.early_stopping.early_stop:
                     self.ending = False
                     print("Early Stopping")
-                    # path = 'ts_benchmark/baselines/LLM/checkpoints/LLM'
-                    # torch.save(self.model.state_dict(), path + '/' + self.model_name + '_' + self.config.dataset + '_' + str(self.config.seq_len) + '.pth')
+                    path = 'ts_benchmark/baselines/LLM/checkpoints/LLM'
+                    torch.save(self.model.state_dict(), path + '/' + self.model_name + '_' + self.config.dataset + '_' + str(self.config.seq_len) + '.pth')
                     break
 
             adjust_learning_rate(optimizer, epoch + 1, config)
 
         if self.ending:
             print("Ending")
-            # path = 'ts_benchmark/baselines/LLM/checkpoints/LLM'
-            # torch.save(self.model.state_dict(), path + '/' + self.model_name + '_' + self.config.dataset + '_' + str(self.config.seq_len) + '.pth')
+            path = 'ts_benchmark/baselines/LLM/checkpoints/LLM'
+            torch.save(self.model.state_dict(), path + '/' + self.model_name + '_' + self.config.dataset + '_' + str(self.config.seq_len) + '.pth')
                         
 
     def forecast(self, horizon: int, train: pd.DataFrame) -> np.ndarray:
@@ -441,9 +422,9 @@ class LLMAdapter(ModelBase):
         """
         if hasattr(self, 'early_stopping') and self.early_stopping.check_point is not None:
             self.model.load_state_dict(self.early_stopping.check_point)
-        # elif self.config.get_train or self.ending:
-        #     path = 'ts_benchmark/baselines/LLM/checkpoints/LLM/' + self.model_name + '_' + self.config.dataset + '_' + str(self.config.seq_len) + '.pth'
-        #     self.model.load_state_dict(torch.load(path))
+        elif self.config.get_train or self.ending:
+            path = 'ts_benchmark/baselines/LLM/checkpoints/LLM/' + self.model_name + '_' + self.config.dataset + '_' + str(self.config.seq_len) + '.pth'
+            self.model.load_state_dict(torch.load(path))
 
         if self.model is None:
             raise ValueError("Model not trained. Call the fit() function first.")

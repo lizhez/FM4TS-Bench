@@ -20,7 +20,6 @@ class Moment(nn.Module):
         self.freq = config.freq
         self.dataset = config.dataset
 
-        # self.no_training = True
 
         self.model = MOMENTPipeline.from_pretrained(
             "ts_benchmark/baselines/pre_train/checkpoints/MOMENT", 
@@ -30,16 +29,13 @@ class Moment(nn.Module):
                 'seq_len': config.seq_len,
                 'head_dropout': 0.1,
                 'weight_decay': 0,
-                'freeze_encoder': True, # Freeze the patch embedding layer
-                'freeze_embedder': True, # Freeze the transformer encoder
-                'freeze_head': False, # The linear forecasting head must be trained
+                'freeze_encoder': True, 
+                'freeze_embedder': True, 
+                'freeze_head': False, 
             },
         )
         self.model.init()
-        if not config.use_p:
-            for param in self.model.parameters():
-                param.data.uniform_(-0.02, 0.02)
-        
+
 
     def forward(self, inputs, dec_inp, x_mark_enc, x_mark_dec, device=None, num_samples=None):        
         B, _, K = inputs.shape

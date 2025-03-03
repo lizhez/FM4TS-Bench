@@ -38,7 +38,7 @@ DEFAULT_PreTrain_BASED_HYPER_PARAMS = {
     'target_dim': 1, 
     'label_len':96,
     "lr": 0.0001,
-    "patience": 1,
+    "patience": 3,
     "loss": "MSE",
     "itr": 1,
     "num_epochs": 20,
@@ -49,16 +49,9 @@ DEFAULT_PreTrain_BASED_HYPER_PARAMS = {
     "get_train": 0,
     "ending": 0,
     "lradj": "type1",
-    "use_p": 1,
     "patch_size": 64,
     "patch_len": 96,
 
-    # (is_finetune=1, is_linear_probe=0, dset_finetune='etth1', context_points=512, 
-    # target_points=336, batch_size=64, num_workers=0, scaler='standard', features='M', 
-    # patch_len=64, stride=64, n_embedding=128, L1_loss=1, revin=1, n_layers=3, 
-    # n_heads=16, d_model=256, d_ff=512, dropout=0.2, head_dropout=0.2, 
-    # n_epochs_finetune=20, lr=0.0001, pretrained_model='full-shot', finetuned_model_id=1, 
-    # model_type='mfm+register', finetune_percentage=1.0, one_channel=0, freeze_embedding=1)
 }
 
 class PreTrainConfig:
@@ -224,7 +217,7 @@ class PreTrainAdapter(ModelBase):
         config = self.config
         train_data, valid_data = train_val_split(
             train_valid_data, train_ratio_in_tv, config.seq_len
-        ) # 获得train的长度
+        )
 
         self.scaler.fit(train_data.values)
 
@@ -235,8 +228,7 @@ class PreTrainAdapter(ModelBase):
                 index=train_data.index,
             )
 
-        # self.lags = get_lags(self.config.freq)
-        # WOOD 0.875
+
         if train_ratio_in_tv != 1:
             if config.norm:
                 valid_data = pd.DataFrame(
@@ -304,7 +296,6 @@ class PreTrainAdapter(ModelBase):
                 optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
                 
             criterion = nn.MSELoss()
-            # optimizer = optim.Adam(self.model.pipeline.model.parameters(), lr=config.lr)
             self.early_stopping = EarlyStopping(patience=config.patience)
             for epoch in range(config.num_epochs):
                 self.model.train()
@@ -327,7 +318,6 @@ class PreTrainAdapter(ModelBase):
                     )
 
                     output = self.model(input, dec_input, input_mark, target_mark, device)
-                    # print('One Epoch')
                     if self.model_name == 'TimerModel':
                         target = target[:, -config.seq_len:, :]
                         output = output[:, -config.seq_len:, :]
@@ -349,22 +339,16 @@ class PreTrainAdapter(ModelBase):
                     if self.early_stopping.early_stop:
                         self.config.ending = 0
                         print("Early Stopping----------------")
-                        if self.model_name == 'TimesFM':
-                            path = 'ts_benchmark/baselines/pre_train/checkpoints/pretrain/TimesFM'
-                            torch.save(self.model.state_dict(), path + '_' + self.config.dataset + str(self.config.seq_len)  + '_' + str(self.config.pred_len) + '.pth')
-                        # path = 'ts_benchmark/baselines/pre_train/checkpoints/pretrain'
-                        # torch.save(self.model.state_dict(), path + '/' + self.model_name + '_' + self.config.dataset + str(self.config.seq_len)  + '_' + str(self.config.pred_len) + '.pth')
+                        path = 'ts_benchmark/baselines/pre_train/checkpoints/pretrain'
+                        torch.save(self.model.state_dict(), path + '/' + self.model_name + '_' + self.config.dataset + str(self.config.seq_len)  + '_' + str(self.config.pred_len) + '.pth')
                         break
 
                 adjust_learning_rate(optimizer, epoch + 1, config)
 
             if self.config.ending:
                 print("Ending----------------")
-                if self.model_name == 'TimesFM':
-                    path = 'ts_benchmark/baselines/pre_train/checkpoints/pretrain/TimesFM'
-                    torch.save(self.model.state_dict(), path + '_' + self.config.dataset + str(self.config.seq_len)  + '_' + str(self.config.pred_len) + '.pth')
-                # path = 'ts_benchmark/baselines/pre_train/checkpoints/pretrain'
-                # torch.save(self.model.state_dict(), path + '/' + self.model_name + '_' + self.config.dataset + str(self.config.seq_len)  + '_' + str(self.config.pred_len) + '.pth')
+                path = 'ts_benchmark/baselines/pre_train/checkpoints/pretrain'
+                torch.save(self.model.state_dict(), path + '/' + self.model_name + '_' + self.config.dataset + str(self.config.seq_len)  + '_' + str(self.config.pred_len) + '.pth')
                 
 
 
@@ -381,10 +365,6 @@ class PreTrainAdapter(ModelBase):
         if hasattr(self, 'early_stopping') and self.early_stopping.check_point is not None:
             self.model.load_state_dict(self.early_stopping.check_point)
         elif self.config.get_train or self.config.ending:
-            # if self.model_name == 'TimesFM':
-            #     path = 'ts_benchmark/baselines/pre_train/checkpoints/pretrain/TimesFM'
-            #     torch.save(self.model.state_dict(), path + '_' + self.config.sampling_rate + '_' + self.config.dataset + str(self.config.seq_len)  + '_' + str(self.config.pred_len) + '.pth')
-            # else:
             path = 'ts_benchmark/baselines/pre_train/checkpoints/pretrain/' + self.model_name + '_' + self.config.dataset + str(self.config.seq_len) + '_' + str(self.config.pred_len) + '.pth'
             self.model.load_state_dict(torch.load(path))
         
@@ -395,9 +375,6 @@ class PreTrainAdapter(ModelBase):
         self.model.to(device)
         self.model.eval()
 
-        # if self.model_name == 'Moirai':
-        #     input_data = batch_maker.make_batch(self.config.batch_size, self.config.seq_len)
-        # else:
         input_data = batch_maker.make_batch(self.config.batch_size, self.config.seq_len)
         input_np = input_data["input"]
 
@@ -411,8 +388,7 @@ class PreTrainAdapter(ModelBase):
             math.ceil(horizon / self.config.horizon) + 1
         ) * self.config.horizon
         all_mark, all_time_stamp = self._padding_time_stamp_mark(input_index, padding_len)
-        
-        # answers, batch_time = self._perform_rolling_predictions(horizon, input_np, all_mark, all_time_stamp, device)
+
         answers = self._perform_rolling_predictions(horizon, input_np, all_mark, all_time_stamp, device)
 
         if self.config.norm:
@@ -422,7 +398,7 @@ class PreTrainAdapter(ModelBase):
             )
 
         return answers
-        # return answers, batch_time
+
 
     def _perform_rolling_predictions(
         self,
@@ -454,14 +430,7 @@ class PreTrainAdapter(ModelBase):
                     torch.tensor(input_mark_np, dtype=torch.float32).to(device),
                     torch.tensor(target_mark_np, dtype=torch.float32).to(device),
                 )
-                start_inference_time = time.time()
-                output = self.model(input, dec_input, input_mark, target_mark, device, input_stamp_np)
-                end_inference_time = time.time()
-                # macs, pp = profile(self.model, inputs=(input, dec_input, input_mark, target_mark, device, input_stamp_np))
-                # print(f"macs: {macs}, parameters: {pp}")
-                # allocated_memory = cuda.mem_get_info()[1]
-                # print(f"allocated memory: {allocated_memory}")
-                
+                output = self.model(input, dec_input, input_mark, target_mark, device, input_stamp_np)       
                 column_num = output.shape[-1]
                 real_batch_size = output.shape[0]
                 answer = (
@@ -484,11 +453,9 @@ class PreTrainAdapter(ModelBase):
                     input_stamp_np,
                     target_stamp_np,
                 ) = self._get_rolling_data(input_np, output, all_mark, all_time_stamp, rolling_time)
-                # print("Rolling Time: ", rolling_time)
-        # batch_time = end_inference_time - start_inference_time
-        # print("Batch Time: ", batch_time)
+
         answers = np.concatenate(answers, axis=1)
-        # return answers[:, -horizon:, :], batch_time
+
         return answers[:, -horizon:, :]
 
     def _get_rolling_data(
@@ -525,7 +492,7 @@ class PreTrainAdapter(ModelBase):
         advance_len = rolling_time * self.config.horizon
         input_mark_np = all_mark[:, advance_len : self.config.seq_len + advance_len, :]
         input_stamp_np = all_time_stamp[:, advance_len : self.config.seq_len + advance_len]
-        # start = self.config.seq_len - self.config.label_len + advance_len
+
         start = advance_len
         end = self.config.seq_len + self.config.horizon + advance_len
         target_mark_np = all_mark[:, start:end, :]

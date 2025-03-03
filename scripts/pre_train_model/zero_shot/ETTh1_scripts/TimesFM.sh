@@ -21,3 +21,4 @@ python ./scripts/run.py --config-path "rolling_forecast_config.json" --data-name
 python ./scripts/run.py --config-path "rolling_forecast_config.json" --data-name-list "ETTh1.csv" --strategy-args '{"horizon":336}' --model-name "pre_train.TimesFM" --model-hyper-params '{"horizon": 336, "seq_len": 512, "input_patch_len": 32, "output_patch_len": 128, "target_dim": 7, "is_train": 0, "dataset": "ETTh1", "freq": "h"}' --adapter "PreTrain_adapter"  --gpus 0  --num-workers 1  --timeout 60000  --save-path "ZERO/ETTh1/TimesFM"
 
 python ./scripts/run.py --config-path "rolling_forecast_config.json" --data-name-list "ETTh1.csv" --strategy-args '{"horizon":720}' --model-name "pre_train.TimesFM" --model-hyper-params '{"horizon": 720, "seq_len": 512, "input_patch_len": 32, "output_patch_len": 128, "target_dim": 7, "is_train": 0, "dataset": "ETTh1", "freq": "h"}' --adapter "PreTrain_adapter"  --gpus 0  --num-workers 1  --timeout 60000  --save-path "ZERO/ETTh1/TimesFM"
+

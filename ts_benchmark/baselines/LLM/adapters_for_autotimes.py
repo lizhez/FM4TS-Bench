@@ -294,9 +294,6 @@ class AutoTimesAdapter(ModelBase):
     def forecast(self, horizon: int, train: pd.DataFrame) -> np.ndarray:
         return None
 
-    # def batch_forecast_withtime(self, horizon, batch_maker, **kwargs):
-    #     return super().batch_forecast(horizon, batch_maker, **kwargs)
-    
     def batch_forecast(
         # self, horizon: int, batch_maker: BatchMaker, time_maker: BatchMaker, **kwargs
         self, horizon: int, batch_maker: BatchMaker, **kwargs
@@ -412,16 +409,7 @@ class AutoTimesAdapter(ModelBase):
         if rolling_time > 0:
             input_np = np.concatenate((input_np, output), axis=1)
             input_np = input_np[:, -self.config.seq_len :, :]
-        # target_np = np.zeros(
-        #     (
-        #         input_np.shape[0],
-        #         self.config.label_len + self.config.horizon,
-        #         input_np.shape[2],
-        #     )
-        # )
-        # target_np[:, : self.config.label_len, :] = input_np[
-        #     :, -self.config.label_len :, :
-        # ]
+
         advance_len = rolling_time * self.config.horizon
         input_mark_np = all_mark[:, advance_len//96 : (self.config.seq_len + advance_len)//96, :]
         start = (self.config.seq_len + advance_len)//96
@@ -431,7 +419,6 @@ class AutoTimesAdapter(ModelBase):
             start:end,
             :,
         ]
-        # return input_np, target_np, input_mark_np, target_mark_np
         return input_np, input_mark_np, target_mark_np
 
 def generate_model_factory(

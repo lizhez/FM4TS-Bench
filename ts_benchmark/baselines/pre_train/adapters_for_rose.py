@@ -48,7 +48,6 @@ DEFAULT_Rose_BASED_HYPER_PARAMS = {
     "is_train": 0,
     "get_train": 0,
     "ending": 0,
-    "use_p": 1,
     
     "head_type": 'prediction',
     "num_slots": 8,
@@ -242,8 +241,6 @@ class RoseAdapter(ModelBase):
                 index=train_data.index,
             )
 
-        # self.lags = get_lags(self.config.freq)
-        # WOOD 0.875
         if train_ratio_in_tv != 1:
             if config.norm:
                 valid_data = pd.DataFrame(
@@ -289,11 +286,9 @@ class RoseAdapter(ModelBase):
 
         if config.is_train:
             
-            # if not os.path.exists("ts_benchmark/baselines/pre_train/checkpoints/pretrain"):
-            #     os.makedirs("ts_benchmark/baselines/pre_train/checkpoints/pretrain")
+            if not os.path.exists("ts_benchmark/baselines/pre_train/checkpoints/pretrain"):
+                os.makedirs("ts_benchmark/baselines/pre_train/checkpoints/pretrain")
             
-            
-
             total_params = sum(
                 p.numel() for p in self.model.parameters() if p.requires_grad
             )
@@ -309,53 +304,11 @@ class RoseAdapter(ModelBase):
                 criterion = torch.nn.MSELoss(reduction='mean')
             self.model.train()
 
-            """
-            if config.Finding_lr:
-                print("Finding lr......")
-                for i, (input, target, input_mark, target_mark) in enumerate(
-                    train_data_loader
-                ):
-                    input, target, input_mark, target_mark = (
-                        input.to(device),
-                        target.to(device),
-                        input_mark.to(device),
-                        target_mark.to(device),
-                    )
-                    find_lr = LRFinder(optimizer, 1e-7, 10, 100, 'exp', suggestion='valley') 
-                    find_lr.before_fit()
-
-                    target = target[:, -config.horizon :, :]
-                    if config.n_embedding!=0:
-                        # forward
-                        pred, xe, xq = self.model(input)
-                        # compute loss
-                        loss_reconstruct = criterion(pred, target)
-                        # self.mse=loss_reconstruct
-                        loss_func1=torch.nn.MSELoss(reduction='mean')
-                        loss_embedding = loss_func1(xe.detach(), xq)
-                        loss_commitment = loss_func1(xe, xq.detach())
-                        loss = loss_reconstruct + loss_embedding +  loss_commitment
-                    else:
-                        # forward
-                        pred = self.self.model(input)
-                        # compute loss
-                        loss  = self.loss_func(pred, target)
-
-                    optimizer.zero_grad()
-                    loss.backward()
-                    optimizer.step()
-                    find_lr.after_batch_train()
-                    find_lr.after_step()
-                    config.lr = find_lr.suggested_lr
-                    print(f"suggested_lr: {config.lr}")
-                    optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
-            """
             self.early_stopping = EarlyStopping(patience=config.patience)
-            # Finetune the head of freeze_epochs > 0:
+
             if config.freeze_epochs > 0:
                 print('Finetune the head')
                 self.model.freeze()
-                # self.fit_one_cycle(config.freeze_epochs, lr_max=config.lr, pct_start=0.3)
                 for epoch in range(config.freeze_epochs):
                     self.model.train()
                     scheduler = lr_scheduler.OneCycleLR(optimizer = optimizer, 
@@ -374,7 +327,7 @@ class RoseAdapter(ModelBase):
                                             last_epoch=-1,
                                             verbose=False
                                             )
-                    # self.lrs.append( self.scheduler.get_last_lr()[0] ) 
+
                     for i, (input, target, input_mark, target_mark) in enumerate(
                         train_data_loader
                     ):
@@ -406,8 +359,6 @@ class RoseAdapter(ModelBase):
                         optimizer.step()
                         scheduler.step()
                         
-                        
-                    # valid_loss = self.validate(valid_data_loader, criterion)
                     if train_ratio_in_tv != 1:
                         valid_loss = self.validate(valid_data_loader, criterion)
                         self.early_stopping(valid_loss, self.model)
@@ -415,19 +366,13 @@ class RoseAdapter(ModelBase):
                             print("Early Stopping----------------")
                             break
 
-                    # adjust_learning_rate(optimizer, epoch + 1, config)
-                    # epoch += 1
-                    
-            # self.scheduled_lrs = self.lrs
             self.model.load_state_dict(self.early_stopping.check_point)
             
             
-            # Finetune the entire network if n_epochs > 0
             if config.num_epochs > 0:
                 print('Finetune the entire network')        
                 self.model.unfreeze()
-                # if config.n_embedding and config.freeze_embedding:
-                #     for param in self.model.model.vq_embedding.parameters(): param.requires_grad = False
+
                 optimizer = optim.Adam(self.model.parameters(), lr=config.lr/2)
                 for epoch in range(config.num_epochs):
                     self.model.train()
@@ -447,7 +392,7 @@ class RoseAdapter(ModelBase):
                                             last_epoch=-1,
                                             verbose=False
                                             )
-                    # self.lrs.append( self.scheduler.get_last_lr()[0] ) 
+
                     for i, (input, target, input_mark, target_mark) in enumerate(
                         train_data_loader
                     ):
@@ -485,11 +430,9 @@ class RoseAdapter(ModelBase):
                         self.early_stopping(valid_loss, self.model)
                         if self.early_stopping.early_stop:
                             print("Early Stopping----------------")
-                            # path = 'ts_benchmark/baselines/pre_train/checkpoints/pretrain'
-                            # torch.save(self.model.state_dict(), path + '/' + self.model_name + '_' + self.config.dataset + str(self.config.seq_len)  + '_' + str(self.config.pred_len) + '.pth')
+                            path = 'ts_benchmark/baselines/pre_train/checkpoints/pretrain'
+                            torch.save(self.model.state_dict(), path + '/' + self.model_name + '_' + self.config.dataset + str(self.config.seq_len)  + '_' + str(self.config.pred_len) + '.pth')
                             break
-                # self.scheduled_lrs = self.lrs
-                # adjust_learning_rate(optimizer, epoch + 1, config)
 
 
     def batch_forecast(
@@ -529,7 +472,6 @@ class RoseAdapter(ModelBase):
         ) * self.config.horizon
         all_mark, all_time_stamp = self._padding_time_stamp_mark(input_index, padding_len)
         
-        # answers, batch_time = self._perform_rolling_predictions(horizon, input_np, all_mark, all_time_stamp, device)
         answers = self._perform_rolling_predictions(horizon, input_np, all_mark, all_time_stamp, device)
 
         if self.config.norm:
@@ -539,7 +481,6 @@ class RoseAdapter(ModelBase):
             )
 
         return answers
-        # return answers, batch_time
 
     def _perform_rolling_predictions(
         self,
@@ -571,13 +512,9 @@ class RoseAdapter(ModelBase):
                     torch.tensor(input_mark_np, dtype=torch.float32).to(device),
                     torch.tensor(target_mark_np, dtype=torch.float32).to(device),
                 )
-                start_inference_time = time.time()
+
                 output, xe, xq = self.model(input, self.config.is_train)
-                end_inference_time = time.time()
-                # macs, pp = profile(self.model, inputs=(input, dec_input, input_mark, target_mark, device, input_stamp_np))
-                # print(f"macs: {macs}, parameters: {pp}")
-                # allocated_memory = cuda.mem_get_info()[1]
-                # print(f"allocated memory: {allocated_memory}")
+
                 
                 column_num = output.shape[-1]
                 real_batch_size = output.shape[0]
@@ -601,11 +538,8 @@ class RoseAdapter(ModelBase):
                     input_stamp_np,
                     target_stamp_np,
                 ) = self._get_rolling_data(input_np, output, all_mark, all_time_stamp, rolling_time)
-                # print("Rolling Time: ", rolling_time)
-        # batch_time = end_inference_time - start_inference_time
-        # print("Batch Time: ", batch_time)
+
         answers = np.concatenate(answers, axis=1)
-        # return answers[:, -horizon:, :], batch_time
         return answers[:, -horizon:, :]
 
     def _get_rolling_data(
@@ -642,7 +576,7 @@ class RoseAdapter(ModelBase):
         advance_len = rolling_time * self.config.horizon
         input_mark_np = all_mark[:, advance_len : self.config.seq_len + advance_len, :]
         input_stamp_np = all_time_stamp[:, advance_len : self.config.seq_len + advance_len]
-        # start = self.config.seq_len - self.config.label_len + advance_len
+
         start = advance_len
         end = self.config.seq_len + self.config.horizon + advance_len
         target_mark_np = all_mark[:, start:end, :]

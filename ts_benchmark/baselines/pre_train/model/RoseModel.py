@@ -1,8 +1,3 @@
-import sys
-
-from numpy import inf
-# import torch
-# sys.path.insert(0, 'ts_benchmark/baselines/pre_train/submodules/ROSE')
 
 from einops import rearrange
 from torch import nn
@@ -130,19 +125,16 @@ class RoseModel(nn.Module):
                 param.data.uniform_(-0.02, 0.02)
         
     def transfer_weights(self, ckpt_path, model, exclude_head=True):
-        # state_dict = model.state_dict()
-        # new_state_dict = torch.load(ckpt_path, map_location=device)
+
         new_state_dict = torch.load(ckpt_path)
         new_state_dict=new_state_dict['model']
-        #print('new_state_dict',new_state_dict)
+
         matched_layers = 0
         m_layers = []
         unmatched_layers = []
         for name, param in model.state_dict().items():        
             if exclude_head and 'head' in name: continue
-            # if 'layers.2' in name or 'layers.1' in name: 
-            #     print(name)
-            #     continue          
+      
             if name in new_state_dict:            
                 matched_layers += 1          
                 input_param = new_state_dict[name]
@@ -152,20 +144,12 @@ class RoseModel(nn.Module):
                 else: unmatched_layers.append(name)
             else:
                 unmatched_layers.append(name)
-                pass # these are weights that weren't in the original model, such as a new head
+                pass 
         if matched_layers == 0:
             print(f'matched)layers:{m_layers}')
             print(f'check unmatched_layers: {unmatched_layers}') 
             raise Exception("No shared weight names were found between the models")
-            
-        
-        # else:
-        #     if len(unmatched_layers) > 0:
-        #         print(f'matched)layers:{m_layers}')
-        #         print(f'check unmatched_layers: {unmatched_layers}')
-        #     else:
-        #         print(f"weights from {ckpt_path} successfully transferred!\n")
-        # model = model.to(device)
+
         return model
 
     def freeze(self):

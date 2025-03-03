@@ -982,10 +982,7 @@ class UniTS(nn.Module):
         if len(msg.missing_keys) > 0:
             print(f"""Warning: There are missing keys in the pretrained model: {msg.missing_keys}, 
                 which may cause prediction results less accurate.""")
-            
-        if not config.use_p:
-            for param in self.model.parameters():
-                param.data.uniform_(-0.02, 0.02)
+
 
 
     def generate_units_default_args(self, dataset_name='ETTh1'):

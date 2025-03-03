@@ -1,5 +1,3 @@
-# import sys
-# sys.path.insert(0, 'ts_benchmark/baselines/pre_train/submodules/granite-tsfm')
 
 import pandas as pd
 import torch
@@ -44,25 +42,15 @@ class TinyTimeMixer(nn.Module):
         with open("ts_benchmark/baselines/pre_train/checkpoints/ttm.yaml", "r") as file:
             model_revisions = yaml.safe_load(file)
 
-        # if model_path_type == 1 or model_path_type == 2:
         ttm_model_revision = model_revisions["research-use-models"][
             f"r2-{self.context_length}-{self.prediction_length}-freq"
         ]["revision"]
 
-        # Use main for 512-96 model
-        # self.model = TinyTimeMixerForPrediction.from_pretrained(
-        #     "ibm-granite/granite-timeseries-ttm-r2", revision="main"
-        # )
         self.model = TinyTimeMixerForPrediction.from_pretrained(
-            # "ts_benchmark/baselines/pre_train/checkpoints/TTM",
-            # "ts_benchmark/baselines/pre_train/checkpoints/TinyTimeMixer",
             "ibm-research/ttm-research-r2",
             revision=ttm_model_revision,
-            # kwargs={"context_length": self.context_length, "prediction_length": self.prediction_length},
         )
-        if not config.use_p:
-            for param in self.model.parameters():
-                param.data.uniform_(-0.02, 0.02)
+
         
     def get_frequency_token(self, token_name: str):
         token = self.frequency_mapping.get(token_name, None)
@@ -90,8 +78,5 @@ class TinyTimeMixer(nn.Module):
     def forward(self, inputs, dec_inp, x_mark_enc, x_mark_dec, device=None, num_samples=None): 
         B, C, K = inputs.shape 
         freq_token = torch.full((B,), self.token).to(device)
-        # if C != 512: # padding 0
-        #     pad_total = 512 - C
-        #     inputs = F.pad(inputs, (0, 0, pad_total, 0), mode='constant', value=0)
         point_forecast = self.model(past_values=inputs, freq_token=freq_token).prediction_outputs
         return point_forecast

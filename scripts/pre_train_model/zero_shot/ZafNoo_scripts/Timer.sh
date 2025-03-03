@@ -21,3 +21,4 @@ python ./scripts/run.py --config-path "rolling_forecast_config.json" --data-name
 python ./scripts/run.py --config-path "rolling_forecast_config.json" --data-name-list "ZafNoo.csv" --strategy-args '{"horizon":336}' --model-name "pre_train.TimerModel" --model-hyper-params '{"horizon": 336, "seq_len": 672, "target_dim": 11, "is_train": 0, "dataset": "ZafNoo", "freq": "min"}' --adapter "PreTrain_adapter"  --gpus 0  --num-workers 1  --timeout 60000  --save-path "ZERO/ZafNoo/TimerModel"
 
 python ./scripts/run.py --config-path "rolling_forecast_config.json" --data-name-list "ZafNoo.csv" --strategy-args '{"horizon":720}' --model-name "pre_train.TimerModel" --model-hyper-params '{"horizon": 720, "seq_len": 672, "target_dim": 11, "is_train": 0, "dataset": "ZafNoo", "freq": "min"}' --adapter "PreTrain_adapter"  --gpus 0  --num-workers 1  --timeout 60000  --save-path "ZERO/ZafNoo/TimerModel"
+

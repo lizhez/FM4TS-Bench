@@ -15,10 +15,7 @@ class CALFModel(nn.Module):
         super().__init__()
         # config.pred_len = config.horizon
         self.model = CALF.Model(config, device)
-        
-        if not config.use_p:
-            for param in self.model.parameters():
-                param.data.uniform_(-0.02, 0.02)
+
        
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, device):        
         output = self.model(x_enc)

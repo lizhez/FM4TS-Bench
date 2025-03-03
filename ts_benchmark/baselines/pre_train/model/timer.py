@@ -1,9 +1,6 @@
 import torch
 from torch import nn
 from einops import rearrange, repeat
-# import sys
-# sys.path.insert(0, 'ts_benchmark/baselines/pre_train/submodules/Timer')
-# from ts_benchmark.baselines.pre_train.submodules.Timer.models import Timer
 
 class TimerModel(nn.Module):
 # class Timer(nn.Module):
@@ -24,13 +21,7 @@ class TimerModel(nn.Module):
         self.label_len = config.seq_len - 96
 
         self.model = torch.jit.load("ts_benchmark/baselines/pre_train/checkpoints/timer/Timer_67M_UTSD_4G.pt")
-        # self.model = torch.load("ts_benchmark/baselines/pre_train/checkpoints/timer/Timer_forecast_1.0.ckpt")
-        # self.model = Timer.Model(config)
-        # self.model.load_state_dict(torch.load("ts_benchmark/baselines/pre_train/checkpoints/timer/Timer_forecast_1.0.ckpt"))
-        if not config.use_p:
-            for param in self.timer.parameters():
-                param.data.uniform_(-0.02, 0.02) 
-       
+
      
     def forward(self, inputs, dec_inp, x_mark_enc, x_mark_dec, device=None, num_samples=None):        
         

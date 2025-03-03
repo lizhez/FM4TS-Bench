@@ -21,10 +21,7 @@ class LLMMixerModel(nn.Module):
             config.description = instruct_list[config.dataset]
         
         self.model = LLMMixer.Model(config)
-        
-        if not config.use_p:
-            for param in self.model.parameters():
-                param.data.uniform_(-0.02, 0.02)
+
        
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, device):        
         output = self.model(x_enc, x_mark_enc, x_dec, x_mark_dec)

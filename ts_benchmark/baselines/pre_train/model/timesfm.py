@@ -44,11 +44,11 @@ class TimesFmTorch(nn.Module):
 
     input_ts, input_padding, inp_freq = [], [], []
 
-    pmap_pad = ((len(inputs) - 1) // self.global_batch_size + 1) * self.global_batch_size - len(inputs) # input_len = 7 B*7
+    pmap_pad = ((len(inputs) - 1) // self.global_batch_size + 1) * self.global_batch_size - len(inputs) 
 
     for i, ts in enumerate(inputs):
         input_len = ts.shape[0]
-        padding = torch.zeros(input_len + self.horizon_len, device=ts.device)  # 保持在同一设备上
+        padding = torch.zeros(input_len + self.horizon_len, device=ts.device)  
 
         if input_len < self.context_len:
             num_front_pad = self.context_len - input_len
@@ -161,9 +161,7 @@ class TimesFM(nn.Module):
     def forward(self, inputs, dec_inp=None, x_mark_enc=None, x_mark_dec=None, device=None, num_samples=None):        
         B, _, K = inputs.shape
         inputs = rearrange(inputs, 'b l k -> (b k) l')
-        # if B==1:
-        #     x=1
-        # print(".")
+
         frequency_input = [self.freq_int] * inputs.shape[0]
         
         _, out = self.model.forecast(inputs, freq=frequency_input)
