@@ -21,3 +21,4 @@ python ./scripts/run.py --config-path "rolling_forecast_config.json" --data-name
 python ./scripts/run.py --config-path "rolling_forecast_config.json" --data-name-list "Traffic.csv" --strategy-args '{"horizon": 336}' --model-name "pre_train.UniTS" --model-hyper-params '{"horizon": 336, "seq_len": 512, "target_dim": 862, "is_train": 1, "sampling_rate": 0.05, "dataset": "Traffic", "freq": "h"}' --adapter "PreTrain_adapter"  --gpus 0  --num-workers 1  --timeout 60000  --save-path "FEW/Traffic/UniTS"
 
 python ./scripts/run.py --config-path "rolling_forecast_config.json" --data-name-list "Traffic.csv" --strategy-args '{"horizon": 720}' --model-name "pre_train.UniTS" --model-hyper-params '{"horizon": 720, "seq_len": 512, "target_dim": 862, "is_train": 1, "sampling_rate": 0.05, "dataset": "Traffic", "freq": "h"}' --adapter "PreTrain_adapter"  --gpus 0  --num-workers 1  --timeout 60000  --save-path "FEW/Traffic/UniTS"
+
