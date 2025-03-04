@@ -120,9 +120,6 @@ class RoseModel(nn.Module):
             ckpt_path = "ts_benchmark/baselines/pre_train/checkpoints/rose/zero-shot.pth"
         self.model = self.transfer_weights(ckpt_path, self.model, exclude_head=False)
 
-        if not config.use_p:
-            for param in self.model.parameters():
-                param.data.uniform_(-0.02, 0.02)
         
     def transfer_weights(self, ckpt_path, model, exclude_head=True):
 
